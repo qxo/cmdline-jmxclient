@@ -651,12 +651,18 @@ public class Client {
                         : new Object[paraminfosLength];
                 for (int i = 0; i < paraminfosLength; i++) {
                     MBeanParameterInfo paraminfo = paraminfos[i];
-                    java.lang.reflect.Constructor c = Class.forName(
-                        paraminfo.getType()).getConstructor(
+                    final String type = paraminfo.getType();
+                    if ("boolean".equals(type)) {
+                        params[i] = Boolean.valueOf(parse.getArgs()[i]);
+                    } else if (type.startsWith("[Ljava.lang.String")) {
+                        params[i] = parse.getArgs()[i].split("[\\[\\],]+");
+                    } else {
+                    java.lang.reflect.Constructor c = Class.forName(type).getConstructor(
                             new Class[] {String.class});
                     params[i] =
                         c.newInstance(new Object[] {parse.getArgs()[i]});
-                    signature[i] = paraminfo.getType();
+                    }
+                    signature[i] = type;
                 }
                 result = mbsc.invoke(instance.getObjectName(), parse.getCmd(),
                     params, signature);
